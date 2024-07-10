@@ -1,4 +1,43 @@
 ﻿@page "/"
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
 
 <PageTitle>Products</PageTitle>
+<section class="card-list product-list">
 
+    @foreach (var product in _products)
+    {
+        <div class="card">
+            <div class="card-content">
+                <img src="@product.ImageUrl" alt="@product.Name cover image" class="card-img" />
+                <h2 class="title">@product.Name</h2>
+                <p>@product.Description</p>
+            </div>
+            <div class="card-footer">
+                <h3 class="price">@product.CurrentPrice.ToString("C")</h3>
+            </div>
+        </div>
+    }
+</section>
+
+<form method="GET" class="search-form">
+    <InputText @bind-Value="searchTerm"/>
+    <button type="button">Search</button>
+</form>
+
+@code {
+    private List<Product> _products;
+
+    [SupplyParameterFromQuery]
+    public string? searchTerm { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        _products = await Db.Product
+        .Where(x =>string.IsNullOrEmpty(searchTerm)||x.Name.ToLower()
+        .StartsWith(searchTerm.ToLower()))
+        .Take(50).ToListAsync();
+
+    }
+}
